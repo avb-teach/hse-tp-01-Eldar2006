@@ -4,30 +4,33 @@ max_depth=""
 input_dir=""
 output_dir=""
 
-while [[ "$#" -gt 0 ]]; do
-    case $1 in
+args=$(getopt -o '' --long max_depth: -- "$@") || exit 1
+eval set -- "$args"
+
+while true; do
+    case "$1" in
         --max_depth)
-            if [[ -n "$2" && "$2" =~ ^[0-9]+$ ]]; then
-                max_depth="$2"
-                shift 2
-            else
-                echo "Ошибка: --max_depth требует числового аргумента."
-                exit 1
-            fi
+            max_depth="$2"
+            shift 2
+            ;;
+        --)
+            shift
+            break
             ;;
         *)
-            break
+            echo "Неизвестная ошибка при разборе аргументов"
+            exit 1
             ;;
     esac
 done
 
-if [[ -z "$1" || -z "$2" ]]; then
+input_dir="$1"
+output_dir="$2"
+
+if [[ -z "$input_dir" || -z "$output_dir" ]]; then
     echo "Использование: $0 [--max_depth N] input_dir output_dir"
     exit 1
 fi
-
-input_dir="$1"
-output_dir="$2"
 
 if [[ ! -d "$input_dir" ]]; then
     echo "Ошибка: Входная директория '$input_dir' не существует."
@@ -36,16 +39,15 @@ fi
 
 mkdir -p "$output_dir"
 
-find_cmd="find \"$input_dir\""
+find_cmd=("find" "$input_dir" "-type" "f")
 if [[ -n "$max_depth" ]]; then
-    find_cmd+=" -maxdepth $max_depth"
+    find_cmd+=("-maxdepth" "$max_depth")
 fi
-find_cmd+=" -type f -print0"
 
-eval "$find_cmd" | sort -z | while IFS= read -r -d '' file; do
+counter=1
+while IFS= read -r -d '' file; do
     filename=$(basename "$file")
     unique_name="$filename"
-    counter=1
 
     while [[ -e "$output_dir/$unique_name" ]]; do
         name="${filename%.*}"
@@ -59,4 +61,4 @@ eval "$find_cmd" | sort -z | while IFS= read -r -d '' file; do
     done
 
     cp "$file" "$output_dir/$unique_name"
-done
+done < <("${find_cmd[@]}" -print0)
