@@ -10,7 +10,7 @@ while [[ "$#" -gt 0 ]]; do
             if [[ -n "$2" && "$2" =~ ^[0-9]+$ ]]; then
                 max_depth="$2"
                 shift 2
-            else # 1
+            else #
                 echo "Ошибка: --max_depth требует числового аргумента."
                 exit 1
             fi
