@@ -10,7 +10,7 @@ while [[ "$#" -gt 0 ]]; do
             if [[ -n "$2" && "$2" =~ ^[0-9]+$ ]]; then
                 max_depth="$2"
                 shift 2
-            else #
+            else
                 echo "Ошибка: --max_depth требует числового аргумента."
                 exit 1
             fi
@@ -42,7 +42,7 @@ if [[ -n "$max_depth" ]]; then
 fi
 find_cmd+=" -type f -print0"
 
-eval "$find_cmd" | while IFS= read -r -d '' file; do
+eval "$find_cmd" | sort -z | while IFS= read -r -d '' file; do
     filename=$(basename "$file")
     unique_name="$filename"
     counter=1
